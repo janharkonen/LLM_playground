@@ -1,0 +1,67 @@
+from openai import OpenAI
+import json
+import numpy as np
+
+client = OpenAI()
+
+with open('embeddings.json', 'r') as file:
+    data = json.load(file)
+
+keys = list(data.keys())
+
+
+
+for key in keys:
+    print(key)
+    print(data[key])
+    if data[key]['embedding'] == []:
+        print(f"Embedding for {data[key]['phrase']} is empty")
+        response = client.embeddings.create(
+            model="text-embedding-3-large",
+            input=data[key]['phrase']
+        )
+        data[key]['embedding'] = response.data[0].embedding
+        print(data[key]['embedding'])
+
+with open('embeddings.json', 'w') as file:
+    json.dump(data, file, indent=4)
+
+def cosine_similarity(vector1, vector2):
+    return np.dot(vector1, vector2) / (np.linalg.norm(vector1) * np.linalg.norm(vector2))
+
+for key1 in keys:
+    for key2 in keys:
+        print(f'cosine similarity between {data[key1]["phrase"]} and {data[key2]["phrase"]}')
+        vector1 = data[key1]["embedding"]
+        vector2 = data[key2]["embedding"]
+        print(f'cosine similarity: {cosine_similarity(vector1, vector2)}')
+    print(f'embedding for the phrase {data[key1]["phrase"]}')
+    vector = data[key1]["embedding"]
+    print(f'length of the embedding: {len(vector)}')
+    print(f'first 10 elements of the embedding: {vector[:10]}')
+    print(f'max of the embedding: {max(vector)}')
+    print(f'min of the embedding: {min(vector)}')
+    print(f'L2 length of the embedding: {np.linalg.norm(vector)}')
+    vector_len = 0
+    for i in vector:
+        vector_len += i**2
+    vector_len = np.sqrt(vector_len)
+    print(f'L2 length of the embedding self calc: {vector_len}')
+
+    print('---------------------------------------------')
+
+for key in keys:
+    print(data[key]['phrase'])
+
+
+
+
+
+
+
+#response = client.responses.create(
+#    model="gpt-4.1-nano-2025-04-14",
+#    input="Write a haiku about a game of chess."
+#)
+#
+#print(response.output_text)
